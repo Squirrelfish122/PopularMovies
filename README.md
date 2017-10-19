@@ -1,0 +1,1 @@
+当你尝试运行项目时，需要将NetWorkUtils.API_KEY设置为你自己在[THE MOVIE DB](https://www.themoviedb.org/)获得的KEY.
