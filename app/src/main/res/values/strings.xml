@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Popular Movies</string>
+
+    <string name="btn_retry_tip">Click to load again</string>
+
+    <string name="menu_item_action_popular">按热门程度排序</string>
+    <string name="menu_item_action_rated">按评分高低排序</string>
+</resources>
