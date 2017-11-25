@@ -6,6 +6,7 @@ import android.widget.ImageView;
 
 import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
+import com.zhh.hyman.popularmovies.R;
 
 import java.io.BufferedReader;
 import java.io.Closeable;
@@ -33,9 +34,11 @@ public class NetWorkUtils {
 
     private static String DIMENSION = "w185/";
     private static final int RESPONSE_CODE_SUCCESS = 200;
+    private static final int READ_TIME_OUT = 10 * 1000;
+    private static final int CONNECT_TIME_OUT = 10 * 1000;
 
     // TODO: 2017/10/12 update to your own api key
-    private static final String API_KEY = "abcdefghijk";
+    private static final String API_KEY = "abcdefgh";
 
     private static String getMovieDetailUrl(String movieId) {
         return BASE_URL + "/" + movieId;
@@ -76,6 +79,8 @@ public class NetWorkUtils {
         HttpURLConnection httpURLConnection = null;
         try {
             httpURLConnection = (HttpURLConnection) url.openConnection();
+            httpURLConnection.setConnectTimeout(CONNECT_TIME_OUT);
+            httpURLConnection.setReadTimeout(READ_TIME_OUT);
             int responseCode = httpURLConnection.getResponseCode();
             Log.i(TAG, "responseCode = " + responseCode);
             if (responseCode == RESPONSE_CODE_SUCCESS) {
@@ -112,7 +117,11 @@ public class NetWorkUtils {
     public static void loadImage(ImageView imageView, String relativePath) {
         String imageUrl = getImageUrl(relativePath);
         Log.i(TAG, "imageUrl = " + imageUrl);
-        Picasso.with(imageView.getContext()).load(imageUrl).into(imageView);
+        Picasso.with(imageView.getContext())
+                .load(imageUrl)
+                .placeholder(R.drawable.loading)
+                .error(R.drawable.load_fail)
+                .into(imageView);
     }
 
     private static String getImageUrl(String relativePath) {

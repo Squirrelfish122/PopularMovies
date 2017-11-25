@@ -16,11 +16,11 @@
         android:id="@+id/main_btn_retry"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="15sp"
+        android:textSize="@dimen/btn_retry_text_size"
         android:layout_gravity="center"
         android:visibility="invisible"
         android:background="@android:color/transparent"
-        android:text="Failed,Click me to load again"/>
+        android:text="@string/btn_retry_tip"/>
 
     <ProgressBar
         android:id="@+id/main_pb_indicator"

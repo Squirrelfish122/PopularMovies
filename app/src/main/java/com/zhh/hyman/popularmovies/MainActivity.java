@@ -2,12 +2,10 @@ package com.zhh.hyman.popularmovies;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,9 +17,8 @@ import android.widget.Toast;
 
 import com.zhh.hyman.popularmovies.data.MovieItem;
 import com.zhh.hyman.popularmovies.data.MovieListResult;
-import com.zhh.hyman.popularmovies.utils.NetWorkUtils;
+import com.zhh.hyman.popularmovies.listener.LoadingDataListener;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -89,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnLi
                 if (asyncTaskType != GetMovieListAsyncTask.ASYNC_TASK_TYPE_GET_POPULAR_MOVIES) {
                     asyncTaskType = GetMovieListAsyncTask.ASYNC_TASK_TYPE_GET_POPULAR_MOVIES;
                     loadData();
-                }else {
+                } else {
                     showTip(R.string.menu_item_action_popular);
                 }
                 break;
@@ -98,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnLi
                 if (asyncTaskType != GetMovieListAsyncTask.ASYNC_TASK_TYPE_GET_RATED_MOVIES) {
                     asyncTaskType = GetMovieListAsyncTask.ASYNC_TASK_TYPE_GET_RATED_MOVIES;
                     loadData();
-                }else {
+                } else {
                     showTip(R.string.menu_item_action_rated);
                 }
                 break;
@@ -109,7 +106,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnLi
 
     private void showTip(int tipId) {
         String tip = getString(tipId);
-        Toast.makeText(getApplicationContext(),"当前已经" + tip,Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), "当前已经" + tip, Toast.LENGTH_SHORT).show();
     }
 
     private int getItemWidth() {
@@ -120,11 +117,11 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnLi
     }
 
     @Override
-    public void onItemClick(long movieId) {
+    public void onItemClick(MovieItem movieItem) {
         // 进入详情页
-//        Toast.makeText(getApplicationContext(), "准备进入电影：" + movieId, Toast.LENGTH_SHORT).show();
+        //        Toast.makeText(getApplicationContext(), "准备进入电影：" + movieId, Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(MainActivity.this, MovieDetailActivity.class);
-        intent.putExtra(MovieDetailActivity.PARAM_KEY_MOVIE_ID,movieId);
+        intent.putExtra(MovieDetailActivity.PARAM_KEY_MOVIE_ITEM, movieItem);
         startActivity(intent);
     }
 
@@ -134,66 +131,20 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnLi
         if (getMovieListAsyncTask != null) {
             getMovieListAsyncTask.cancel(false);
         }
-        getMovieListAsyncTask = new GetMovieListAsyncTask(asyncTaskType);
+        getMovieListAsyncTask = new GetMovieListAsyncTask(new LoadingDataListener<MovieListResult>() {
+            @Override
+            public void preExecute() {
+                showLoadingView();
+            }
+
+            @Override
+            public void postExecute(MovieListResult movieListResult) {
+                showContentView(movieListResult);
+            }
+        }, asyncTaskType);
         getMovieListAsyncTask.execute();
     }
 
-    private class GetMovieListAsyncTask extends AsyncTask<Void, Void, MovieListResult> {
-
-        public static final int ASYNC_TASK_TYPE_GET_POPULAR_MOVIES = 1;
-        public static final int ASYNC_TASK_TYPE_GET_RATED_MOVIES = 2;
-
-        private int mType;
-
-        public GetMovieListAsyncTask(int type) {
-            mType = type;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            showLoadingView();
-        }
-
-        @Override
-        protected MovieListResult doInBackground(Void... voids) {
-            URL url = getURL();
-            String responseFromHttpUrl = NetWorkUtils.getResponseFromHttpUrl(url);
-            if (!TextUtils.isEmpty(responseFromHttpUrl)) {
-                return NetWorkUtils.parseData(responseFromHttpUrl, MovieListResult.class);
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(MovieListResult movieListResult) {
-            super.onPostExecute(movieListResult);
-
-            if (movieListResult != null) {
-                showContentView();
-                ArrayList<MovieItem> movieItems = new ArrayList<>(Arrays.asList(movieListResult.results));
-                if (movieItems.size() > 0) {
-                    movieAdapter.bindData(movieItems);
-                    return;
-                }
-            }
-            showLoadFailedView();
-        }
-
-        private URL getURL() {
-            URL url;
-            switch (mType) {
-                case ASYNC_TASK_TYPE_GET_RATED_MOVIES:
-                    url = NetWorkUtils.getRatedURL();
-                    break;
-                case ASYNC_TASK_TYPE_GET_POPULAR_MOVIES:
-                default:
-                    url = NetWorkUtils.getPopularURL();
-                    break;
-            }
-            return url;
-        }
-    }
 
     private void showLoadingView() {
         recyclerView.setVisibility(View.INVISIBLE);
@@ -207,9 +158,20 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.OnLi
         progressBar.setVisibility(View.INVISIBLE);
     }
 
-    private void showContentView() {
-        recyclerView.setVisibility(View.VISIBLE);
-        retryButton.setVisibility(View.INVISIBLE);
-        progressBar.setVisibility(View.INVISIBLE);
+    private void showContentView(MovieListResult movieListResult) {
+        if (movieListResult == null) {
+            showLoadFailedView();
+            return;
+        }
+
+        ArrayList<MovieItem> movieItems = new ArrayList<>(Arrays.asList(movieListResult.results));
+        if (movieItems.size() > 0) {
+            recyclerView.setVisibility(View.VISIBLE);
+            retryButton.setVisibility(View.INVISIBLE);
+            progressBar.setVisibility(View.INVISIBLE);
+            movieAdapter.bindData(movieItems);
+        } else {
+            showLoadFailedView();
+        }
     }
 }

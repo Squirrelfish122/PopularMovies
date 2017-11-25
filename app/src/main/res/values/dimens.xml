@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="perfect_padding">5dp</dimen>
+
+    <dimen name="btn_retry_text_size">15sp</dimen>
+
+    <dimen name="movie_detail_poster_width">185dp</dimen>
+    <dimen name="movie_detail_poster_height">287dp</dimen>
+    <dimen name="movie_detail_text_margin_left">10dp</dimen>
+    <dimen name="movie_detail_text_margin_top">30dp</dimen>
+
+    <dimen name="movie_detail_normal_text_size">20sp</dimen>
+    <dimen name="movie_detail_small_text_size">18sp</dimen>
+</resources>
